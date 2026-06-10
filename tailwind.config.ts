@@ -9,17 +9,17 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'bg-primary': '#0f172a',
-        'bg-secondary': '#1e293b',
-        'bg-card': '#334155',
-        'text-primary': '#f1f5f9',
-        'text-secondary': '#cbd5e1',
-        'text-muted': '#94a3b8',
-        'border': '#475569',
-        'primary-100': '#e0f2fe',
-        'primary-500': '#0ea5e9',
-        'primary-600': '#0284c7',
-        'primary-700': '#0369a1',
+        'bg-primary': '#f8fafc', // Light slate
+        'bg-secondary': '#ffffff', // White
+        'bg-card': '#ffffff',
+        'text-primary': '#0f172a', // Dark slate
+        'text-secondary': '#334155',
+        'text-muted': '#64748b',
+        'border': '#e2e8f0', // Light border
+        'primary-100': '#ffedd5', // Orange 100
+        'primary-500': '#f97316', // Orange 500
+        'primary-600': '#ea580c', // Orange 600
+        'primary-700': '#c2410c', // Orange 700
         'success': '#10b981',
         'warning': '#f59e0b',
         'danger': '#ef4444',

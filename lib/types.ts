@@ -18,6 +18,7 @@ export interface Tagihan {
   rp_tag_pln: number;
   non_subsidi: number;
   status_bayar?: 'BELUM_BAYAR' | 'SUDAH_BAYAR';
+  periode_label?: string;
 }
 
 export interface BillingData {

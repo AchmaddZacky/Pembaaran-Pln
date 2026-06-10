@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
+import { Terminal, User, Wifi, Clock } from 'lucide-react';
 interface Props {
   petugas?: { nama_petugas: string } | null;
 }
@@ -29,21 +29,24 @@ export default function StatusBar({ petugas }: Props) {
 
   return (
     <div className="bg-bg-secondary border-t border-border px-6 py-3">
-      <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-text-muted">
-        <div className="flex items-center gap-4">
-          <span>PPOB Kasir v3.0</span>
+      <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-text-muted font-medium">
+        <div className="flex items-center gap-6">
+          <span className="flex items-center gap-1.5"><Terminal size={14} className="text-primary-500" /> PPOB Kasir v3.0</span>
           {petugas && (
-            <span className="text-text-secondary">
-              Petugas: <span className="text-success font-medium">{petugas.nama_petugas}</span>
+            <span className="flex items-center gap-1.5 text-text-secondary">
+              <User size={14} className="text-primary-500" />
+              Petugas: <span className="text-primary-600 font-semibold">{petugas.nama_petugas}</span>
             </span>
           )}
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
-            <span>Online</span>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-1.5">
+            <Wifi size={14} className="text-success" />
+            <span className="text-success font-medium">Online</span>
           </div>
-          <span>{time}</span>
+          <span className="flex items-center gap-1.5">
+            <Clock size={14} className="text-primary-500" /> {time}
+          </span>
         </div>
       </div>
     </div>

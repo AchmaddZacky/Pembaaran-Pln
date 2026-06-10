@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import type { Petugas, BillingData } from '@/lib/types';
 import { formatRupiah, generateResi, generateRefNumara, ADMIN_FEE } from '@/lib/utils';
+import { CheckCircle, Printer, RefreshCw, CreditCard, ShieldAlert, User, ShieldCheck } from 'lucide-react';
 
 declare global {
   interface Window {
@@ -16,14 +17,30 @@ interface Props {
   onReset: () => void;
   initialSuccess?: boolean;
   initialOrderId?: string;
+  initialRefNumara?: string;
 }
 
-export default function PaymentPanel({ petugas, data, onReset, initialSuccess = false, initialOrderId = '' }: Props) {
+export default function PaymentPanel({ petugas, data, onReset, initialSuccess = false, initialOrderId = '', initialRefNumara = '' }: Props) {
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(initialSuccess);
   const [noResi, setNoResi] = useState(initialOrderId);
-  const [refNumara, setRefNumara] = useState('');
+  const [refNumara, setRefNumara] = useState(initialRefNumara);
   const [snapLoaded, setSnapLoaded] = useState(false);
+
+  // Restore refNumara dari database jika redirect
+  useEffect(() => {
+    if (initialSuccess && initialRefNumara) {
+      setRefNumara(initialRefNumara);
+    }
+  }, [initialSuccess, initialRefNumara]);
+
+  // Jika redirect dari Midtrans dengan status sukses, update tagihan
+  useEffect(() => {
+    if (initialSuccess && initialOrderId) {
+      fetch(`/api/tagihan/${data.tagihan.id_tagihan}/status`, { method: 'PATCH' })
+        .catch((err) => console.error('Failed to update tagihan status on redirect:', err));
+    }
+  }, [initialSuccess, initialOrderId, data.tagihan.id_tagihan]);
 
   // Ensure numeric values
   const rpTagPln = Number(data.tagihan.rp_tag_pln) || 0;
@@ -173,86 +190,91 @@ export default function PaymentPanel({ petugas, data, onReset, initialSuccess = 
   if (success) {
     return (
       <div className="max-w-3xl mx-auto px-6 py-8">
-        <div className="card text-center">
-          <div className="text-6xl mb-6">✅</div>
+        <div className="card text-center border-t-4 border-t-success pt-10">
+          <div className="flex justify-center mb-6">
+            <div className="w-20 h-20 bg-success/10 text-success rounded-full flex items-center justify-center">
+              <CheckCircle size={48} />
+            </div>
+          </div>
           
           <h2 className="text-3xl font-bold text-success mb-2">
             Pembayaran Berhasil!
           </h2>
           <p className="text-text-muted mb-8">
-            Transaksi telah berhasil diproses
+            Transaksi telah berhasil diproses dengan aman.
           </p>
 
           {/* Receipt */}
-          <div className="bg-bg-card border border-border rounded-lg p-6 mb-6 text-left">
-            <div className="text-center mb-6 pb-6 border-b border-border">
-              <h3 className="text-lg font-bold text-text-primary mb-1">BUKTI PEMBAYARAN</h3>
+          <div className="bg-bg-primary border border-border rounded-xl p-8 mb-8 text-left shadow-sm">
+            <div className="text-center mb-6 pb-6 border-b border-dashed border-border/70">
+              <h3 className="text-lg font-bold text-text-primary mb-1 tracking-widest">BUKTI PEMBAYARAN</h3>
               <p className="text-xs text-text-muted">PT. POS Indonesia - PPOB</p>
             </div>
 
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-text-muted">No. Resi</span>
-                <span className="text-sm font-mono font-semibold text-primary-500">{noResi}</span>
+                <span className="text-sm font-mono font-semibold text-primary-600 bg-primary-50 px-3 py-1 rounded-md">{noResi}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-text-muted">Ref Nurama</span>
                 <span className="text-sm font-mono text-text-secondary">{refNumara}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-text-muted">Tanggal</span>
-                <span className="text-sm text-text-secondary">
+                <span className="text-sm text-text-secondary font-medium">
                   {new Date().toLocaleString('id-ID')}
                 </span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-sm text-text-muted">Petugas</span>
-                <span className="text-sm text-text-secondary">{petugas.nama_petugas}</span>
+                <span className="text-sm text-text-secondary flex items-center gap-1.5"><User size={14}/> {petugas.nama_petugas}</span>
               </div>
             </div>
 
-            <div className="border-t border-border pt-4 mb-4">
-              <div className="flex justify-between mb-2">
+            <div className="border-t border-dashed border-border/70 pt-6 mb-6">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-text-muted">IDPEL</span>
-                <span className="text-sm font-mono text-warning">{data.pelanggan.idpel}</span>
+                <span className="text-sm font-mono font-bold text-primary-600">{data.pelanggan.idpel}</span>
               </div>
-              <div className="flex justify-between mb-4">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-text-muted">Nama</span>
-                <span className="text-sm text-text-primary">{data.pelanggan.nama_pelanggan}</span>
+                <span className="text-sm font-semibold text-text-primary">{data.pelanggan.nama_pelanggan}</span>
               </div>
-              <div className="flex justify-between mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-text-muted">Periode</span>
-                <span className="text-sm text-text-secondary">{data.tagihan.bl_th}</span>
+                <span className="text-sm font-medium text-text-secondary">{data.tagihan.bl_th}</span>
               </div>
             </div>
 
-            <div className="border-t border-border pt-4">
-              <div className="flex justify-between mb-2">
+            <div className="border-t border-dashed border-border/70 pt-6">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-text-muted">Tagihan PLN</span>
-                <span className="text-sm text-text-primary">
+                <span className="text-sm font-medium text-text-primary">
                   {formatRupiah(rpTagPln)}
                 </span>
               </div>
-              <div className="flex justify-between mb-2">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm text-text-muted">Admin POS</span>
-                <span className="text-sm text-text-primary">{formatRupiah(ADMIN_FEE)}</span>
+                <span className="text-sm font-medium text-text-primary">{formatRupiah(ADMIN_FEE)}</span>
               </div>
               {nonSubsidi > 0 && (
-                <div className="flex justify-between mb-2">
+                <div className="flex justify-between items-center mb-3">
                   <span className="text-sm text-text-muted">Non Subsidi</span>
-                  <span className="text-sm text-text-primary">
+                  <span className="text-sm font-medium text-text-primary">
                     {formatRupiah(nonSubsidi)}
                   </span>
                 </div>
               )}
-              <div className="flex justify-between text-lg font-bold border-t border-border pt-3 mt-3">
+              <div className="flex justify-between items-center text-lg font-bold border-t border-border pt-4 mt-4">
                 <span className="text-text-primary">TOTAL</span>
-                <span className="text-success">{formatRupiah(totalTagihan)}</span>
+                <span className="text-success text-2xl">{formatRupiah(totalTagihan)}</span>
               </div>
             </div>
 
-            <div className="text-center mt-6 pt-6 border-t border-border">
-              <p className="text-xs text-text-muted">
+            <div className="text-center mt-8 pt-6 border-t border-dashed border-border/70 flex items-center justify-center gap-2">
+              <ShieldCheck size={16} className="text-success" />
+              <p className="text-xs text-text-muted font-medium">
                 Simpan bukti ini sebagai tanda pembayaran yang sah
               </p>
             </div>
@@ -316,12 +338,12 @@ body { font-family:'Courier New',monospace; font-size:10px; width:80mm; padding:
                 const win = window.open('', '_blank', 'width=340,height=600');
                 if (win) { win.document.write(html); win.document.close(); }
               }}
-              className="btn-secondary flex-1"
+              className="btn-secondary flex-1 flex items-center justify-center gap-2 py-3"
             >
-              🖨️ Cetak Struk
+              <Printer size={18} /> Cetak Struk
             </button>
-            <button onClick={onReset} className="btn-primary flex-1">
-              Transaksi Baru
+            <button onClick={onReset} className="btn-primary flex-1 flex items-center justify-center gap-2 py-3">
+              <RefreshCw size={18} /> Transaksi Baru
             </button>
           </div>
         </div>
@@ -332,50 +354,50 @@ body { font-family:'Courier New',monospace; font-size:10px; width:80mm; padding:
   return (
     <div className="max-w-3xl mx-auto px-6 py-8">
       <div className="card">
-        <h2 className="text-2xl font-bold text-text-primary mb-6">
-          Konfirmasi Pembayaran
+        <h2 className="text-2xl font-bold text-text-primary mb-8 flex items-center gap-3 pb-4 border-b border-border">
+          <CreditCard className="text-primary-500" size={28} /> Konfirmasi Pembayaran
         </h2>
 
-        <div className="bg-bg-card border border-border rounded-lg p-6 mb-6">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-bg-primary border border-border rounded-xl p-6 mb-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6 pb-6 border-b border-border/50">
             <div>
-              <p className="text-sm text-text-muted mb-1">ID Pelanggan</p>
-              <p className="text-lg font-mono font-semibold text-warning">
+              <p className="text-sm font-medium text-text-muted mb-1">ID Pelanggan</p>
+              <p className="text-lg font-mono font-bold text-primary-600 bg-primary-50 px-3 py-1 rounded-md inline-block">
                 {data.pelanggan.idpel}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-text-muted mb-1">Periode</p>
-              <p className="text-lg font-semibold text-text-primary">
+              <p className="text-sm font-medium text-text-muted mb-1">Periode</p>
+              <p className="text-lg font-bold text-text-primary">
                 {data.tagihan.bl_th}
               </p>
             </div>
           </div>
 
           <div className="mb-6">
-            <p className="text-sm text-text-muted mb-1">Nama Pelanggan</p>
-            <p className="text-xl font-semibold text-text-primary">
+            <p className="text-sm font-medium text-text-muted mb-1">Nama Pelanggan</p>
+            <p className="text-2xl font-bold text-text-primary tracking-tight">
               {data.pelanggan.nama_pelanggan}
             </p>
           </div>
 
-          <div className="border-t border-border pt-4">
-            <div className="space-y-2 mb-4">
-              <div className="flex justify-between">
-                <span className="text-text-muted">Tagihan PLN</span>
+          <div className="bg-bg-secondary rounded-lg p-5">
+            <div className="space-y-3 mb-5">
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted font-medium">Tagihan PLN</span>
                 <span className="text-text-primary font-semibold">
                   {formatRupiah(rpTagPln)}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-text-muted">Biaya Admin</span>
+              <div className="flex justify-between items-center">
+                <span className="text-text-muted font-medium">Biaya Admin</span>
                 <span className="text-text-primary font-semibold">
                   {formatRupiah(ADMIN_FEE)}
                 </span>
               </div>
               {nonSubsidi > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-text-muted">Non Subsidi</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-text-muted font-medium">Non Subsidi</span>
                   <span className="text-text-primary font-semibold">
                     {formatRupiah(nonSubsidi)}
                   </span>
@@ -383,25 +405,23 @@ body { font-family:'Courier New',monospace; font-size:10px; width:80mm; padding:
               )}
             </div>
 
-            <div className="flex justify-between items-center py-4 border-t-2 border-primary-500">
-              <span className="text-xl font-bold text-text-primary">Total Bayar</span>
-              <span className="text-3xl font-bold text-primary-500">
+            <div className="flex justify-between items-center pt-5 border-t border-border">
+              <span className="text-lg font-bold text-text-primary">Total Bayar</span>
+              <span className="text-3xl font-black text-primary-600 tracking-tight">
                 {formatRupiah(totalTagihan)}
               </span>
             </div>
           </div>
         </div>
 
-        <div className="bg-warning/10 border border-warning rounded-lg p-4 mb-6">
-          <div className="flex gap-3">
-            <span className="text-2xl">⚠️</span>
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-warning mb-1">Perhatian</p>
-              <p className="text-xs text-text-muted">
-                Pastikan data pelanggan dan jumlah pembayaran sudah benar. 
-                Transaksi yang sudah diproses tidak dapat dibatalkan.
-              </p>
-            </div>
+        <div className="bg-warning/10 border border-warning/30 rounded-xl p-5 mb-8 flex gap-4 items-start">
+          <ShieldAlert className="text-warning flex-shrink-0 mt-0.5" size={24} />
+          <div className="flex-1">
+            <p className="text-sm font-bold text-warning mb-1">Perhatian</p>
+            <p className="text-sm text-warning/90 leading-relaxed">
+              Pastikan data pelanggan dan jumlah pembayaran sudah benar. 
+              Transaksi yang sudah diproses tidak dapat dibatalkan.
+            </p>
           </div>
         </div>
 
@@ -409,30 +429,32 @@ body { font-family:'Courier New',monospace; font-size:10px; width:80mm; padding:
           <button
             onClick={handlePayment}
             disabled={processing || !snapLoaded}
-            className="btn-primary flex-1 text-lg py-4"
+            className="btn-primary flex-1 text-lg py-4 font-bold flex items-center justify-center shadow-md hover:shadow-lg"
           >
             {!snapLoaded ? (
               '⏳ Loading Payment Gateway...'
             ) : processing ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              <span className="flex items-center justify-center gap-3">
+                <RefreshCw className="animate-spin" size={20} />
                 Memproses...
               </span>
             ) : (
-              '💳 Bayar dengan Midtrans'
+              <span className="flex items-center justify-center gap-2">
+                <CreditCard size={22} /> Bayar dengan Midtrans
+              </span>
             )}
           </button>
           <button
             onClick={onReset}
             disabled={processing}
-            className="btn-secondary px-8 py-4"
+            className="btn-secondary px-8 py-4 font-semibold text-text-muted hover:text-text-primary border-border"
           >
             Batal
           </button>
         </div>
 
-        <div className="mt-6 flex items-center justify-between text-xs text-text-muted">
-          <span>Petugas: {petugas.nama_petugas}</span>
+        <div className="mt-8 pt-4 border-t border-border flex items-center justify-between text-xs font-medium text-text-muted">
+          <span className="flex items-center gap-1.5"><User size={14} /> Petugas: {petugas.nama_petugas}</span>
           <span>{petugas.loket}</span>
         </div>
       </div>

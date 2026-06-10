@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import type { BillingData, Transaksi, PelangganFormData } from '@/lib/types';
 import { formatRupiah, TARIF_OPTIONS } from '@/lib/utils';
+import { 
+  Users, Search, Plus, ArrowLeft, Printer, CheckCircle2, 
+  XCircle, Clock, Eye, Edit, Trash2, Filter, Settings, FileText 
+} from 'lucide-react';
 
 interface Props {
   onBack: () => void;
@@ -24,21 +28,21 @@ const EMPTY_FORM: PelangganFormData = {
 function StatusBadge({ status }: { status: string }) {
   if (status === 'paid') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold text-success border border-success px-2 py-0.5 rounded-full">
-        ✓ Lunas
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-success bg-success/10 px-2.5 py-1 rounded-full">
+        <CheckCircle2 size={14} /> Lunas
       </span>
     );
   }
   if (status === 'pending') {
     return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold text-warning border border-warning px-2 py-0.5 rounded-full">
-        ⏳ Pending
+      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-warning bg-warning/10 px-2.5 py-1 rounded-full">
+        <Clock size={14} /> Pending
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-xs font-semibold text-danger border border-danger px-2 py-0.5 rounded-full">
-      ✕ Gagal
+    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-danger bg-danger/10 px-2.5 py-1 rounded-full">
+      <XCircle size={14} /> Gagal
     </span>
   );
 }
@@ -296,49 +300,65 @@ export default function AdminPage({ onBack }: Props) {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-text-primary">Kelola Data</h2>
-          <p className="text-sm text-text-muted mt-1">Manajemen pelanggan dan transaksi</p>
+      <div className="flex items-center justify-between mb-8 pb-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-primary-100 text-primary-500 rounded-xl flex items-center justify-center">
+            <Settings size={24} />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-text-primary">Kelola Data</h2>
+            <p className="text-sm text-text-muted mt-1">Manajemen pelanggan dan transaksi</p>
+          </div>
         </div>
-        <button onClick={onBack} className="btn-secondary">← Kembali</button>
+        <button onClick={onBack} className="btn-secondary flex items-center gap-2 px-6 py-2.5">
+          <ArrowLeft size={18} /> Kembali
+        </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-border">
+      <div className="flex gap-6 mb-8 border-b border-border/50">
         {(['pelanggan', 'transaksi'] as AdminTab[]).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-6 py-3 font-medium transition-colors ${
+            className={`pb-4 font-semibold text-sm transition-colors relative ${
               activeTab === tab
-                ? 'text-primary-500 border-b-2 border-primary-500'
+                ? 'text-primary-600'
                 : 'text-text-muted hover:text-text-secondary'
             }`}
           >
-            {tab === 'pelanggan' ? 'Data Pelanggan' : 'Riwayat Transaksi'}
+            <span className="flex items-center gap-2">
+              {tab === 'pelanggan' ? <Users size={18} /> : <FileText size={18} />}
+              {tab === 'pelanggan' ? 'Data Pelanggan' : 'Riwayat Transaksi'}
+            </span>
+            {activeTab === tab && (
+              <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary-500 rounded-t-full" />
+            )}
           </button>
         ))}
       </div>
 
       {successMsg && (
-        <div className="mb-6 bg-success/10 border border-success text-success px-4 py-3 rounded-lg flex items-center justify-between">
-          <span>{successMsg}</span>
-          <button onClick={() => setSuccessMsg('')} className="text-lg font-bold">×</button>
+        <div className="mb-6 bg-success/10 border border-success/30 text-success px-4 py-3 rounded-lg flex items-center justify-between shadow-sm">
+          <span className="flex items-center gap-2 font-medium"><CheckCircle2 size={18}/> {successMsg.replace('✓ ', '')}</span>
+          <button onClick={() => setSuccessMsg('')} className="text-success hover:text-success/70"><XCircle size={18}/></button>
         </div>
       )}
 
       {confirmDelete && (
-        <div className="mb-6 card border-danger">
-          <p className="text-danger font-semibold mb-2">⚠️ Konfirmasi Hapus</p>
-          <p className="text-text-muted text-sm mb-4">
-            Hapus pelanggan dengan IDPEL <strong>{confirmDelete}</strong>? Data tidak dapat dikembalikan.
-          </p>
-          <div className="flex gap-3">
-            <button onClick={() => handleDelete(confirmDelete)} className="px-4 py-2 bg-danger text-white rounded-lg hover:bg-danger/80 transition-colors">
-              Ya, Hapus
-            </button>
-            <button onClick={() => setConfirmDelete(null)} className="btn-secondary">Batal</button>
+        <div className="mb-8 bg-danger/10 border border-danger/30 rounded-xl p-6 flex gap-4 items-start shadow-sm">
+          <XCircle className="text-danger flex-shrink-0 mt-0.5" size={24} />
+          <div className="flex-1">
+            <p className="text-base font-bold text-danger mb-1">Konfirmasi Hapus</p>
+            <p className="text-sm text-danger/90 mb-4">
+              Hapus pelanggan dengan IDPEL <strong className="font-mono text-danger bg-danger/10 px-2 py-0.5 rounded">{confirmDelete}</strong>? Data tidak dapat dikembalikan.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => handleDelete(confirmDelete)} className="btn-primary bg-danger hover:bg-danger text-white border-none py-2 px-6 flex items-center gap-2 shadow-sm">
+                <Trash2 size={16} /> Ya, Hapus
+              </button>
+              <button onClick={() => setConfirmDelete(null)} className="btn-secondary py-2 px-6">Batal</button>
+            </div>
           </div>
         </div>
       )}
@@ -347,19 +367,26 @@ export default function AdminPage({ onBack }: Props) {
       {activeTab === 'pelanggan' && mode === 'list' && (
         <div>
           <div className="flex items-center justify-between mb-6">
-            <div className="flex-1 flex gap-3">
+            <div className="flex-1 flex gap-3 relative max-w-md">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search size={18} className="text-text-muted" />
+              </div>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari IDPEL atau nama..."
-                className="input-field max-w-md"
+                className="input-field pl-10 w-full"
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="btn-secondary px-4">✕</button>
+                <button onClick={() => setSearchQuery('')} className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-primary">
+                  <XCircle size={16} />
+                </button>
               )}
             </div>
-            <button onClick={handleCreate} className="btn-primary">+ Tambah Pelanggan</button>
+            <button onClick={handleCreate} className="btn-primary flex items-center gap-2 px-6">
+              <Plus size={18} /> Tambah Pelanggan
+            </button>
           </div>
 
           <div className="card overflow-x-auto">
@@ -397,9 +424,15 @@ export default function AdminPage({ onBack }: Props) {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => handleDetail(item.pelanggan.idpel)} className="text-xs px-3 py-1 bg-primary-500/10 text-primary-500 rounded hover:bg-primary-500/20 transition-colors">Lihat</button>
-                          <button onClick={() => handleEdit(item.pelanggan.idpel)} className="text-xs px-3 py-1 bg-success/10 text-success rounded hover:bg-success/20 transition-colors">Edit</button>
-                          <button onClick={() => setConfirmDelete(item.pelanggan.idpel)} className="text-xs px-3 py-1 bg-danger/10 text-danger rounded hover:bg-danger/20 transition-colors">Hapus</button>
+                          <button onClick={() => handleDetail(item.pelanggan.idpel)} className="text-xs p-1.5 bg-primary-50 text-primary-600 rounded-md hover:bg-primary-100 transition-colors" title="Lihat">
+                            <Eye size={16} />
+                          </button>
+                          <button onClick={() => handleEdit(item.pelanggan.idpel)} className="text-xs p-1.5 bg-success/10 text-success rounded-md hover:bg-success/20 transition-colors" title="Edit">
+                            <Edit size={16} />
+                          </button>
+                          <button onClick={() => setConfirmDelete(item.pelanggan.idpel)} className="text-xs p-1.5 bg-danger/10 text-danger rounded-md hover:bg-danger/20 transition-colors" title="Hapus">
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -425,9 +458,33 @@ export default function AdminPage({ onBack }: Props) {
             )}
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-2">IDPEL (12 Digit) *</label>
-              <input type="text" maxLength={12} value={form.idpel}
-                onChange={(e) => setForm({ ...form, idpel: e.target.value.replace(/\D/g, '') })}
-                disabled={mode === 'edit'} className="input-field" placeholder="____________" />
+              <div className="flex gap-2">
+                <input type="text" maxLength={12} value={form.idpel}
+                  onChange={(e) => setForm({ ...form, idpel: e.target.value.replace(/\D/g, '') })}
+                  disabled={mode === 'edit'} className="input-field" placeholder="____________" />
+                {mode === 'create' && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      // Generate unique 12-digit IDPEL
+                      let newId = '';
+                      let isUnique = false;
+                      while (!isUnique) {
+                        // Start with non-zero digit, rest random
+                        newId = String(Math.floor(1 + Math.random() * 9)) +
+                          String(Math.floor(Math.random() * 1e11)).padStart(11, '0');
+                        // Check uniqueness against existing list
+                        const exists = pelangganList.some(p => p.pelanggan.idpel === newId);
+                        if (!exists) isUnique = true;
+                      }
+                      setForm({ ...form, idpel: newId });
+                    }}
+                    className="px-3 py-1 bg-primary-500/10 text-primary-500 border border-primary-500/30 rounded-md hover:bg-primary-500/20 transition-colors text-xs whitespace-nowrap"
+                  >
+                    🎲 Generate
+                  </button>
+                )}
+              </div>
               <p className="text-xs text-text-muted mt-1">{form.idpel.length} / 12 digit</p>
             </div>
             <div>
@@ -469,8 +526,8 @@ export default function AdminPage({ onBack }: Props) {
             </div>
           </div>
           <div className="flex gap-3 mt-8">
-            <button onClick={handleSave} className="btn-primary">✓ Simpan</button>
-            <button onClick={() => setMode('list')} className="btn-secondary">Batal</button>
+            <button onClick={handleSave} className="btn-primary flex items-center gap-2"><CheckCircle2 size={18}/> Simpan</button>
+            <button onClick={() => setMode('list')} className="btn-secondary flex items-center gap-2"><XCircle size={18}/> Batal</button>
           </div>
         </div>
       )}
@@ -544,9 +601,9 @@ export default function AdminPage({ onBack }: Props) {
               {(filterSearch || filterStatus !== 'all' || filterDate) && (
                 <button
                   onClick={() => { setFilterSearch(''); setFilterStatus('all'); setFilterDate(''); }}
-                  className="btn-secondary px-4"
+                  className="btn-secondary px-4 flex items-center gap-2"
                 >
-                  Reset Filter
+                  <Filter size={16} /> Reset Filter
                 </button>
               )}
             </div>
@@ -601,16 +658,18 @@ export default function AdminPage({ onBack }: Props) {
                         <div className="flex items-center justify-center gap-2">
                           <button
                             onClick={() => setSelectedTransaksi(t)}
-                            className="text-xs px-3 py-1 bg-primary-500/10 text-primary-500 rounded hover:bg-primary-500/20 transition-colors"
+                            className="text-xs p-1.5 bg-primary-50 text-primary-600 rounded-md hover:bg-primary-100 transition-colors"
+                            title="Detail"
                           >
-                            Detail
+                            <Eye size={16} />
                           </button>
                           {t.payment_status === 'paid' && (
                             <button
                               onClick={() => printStruk(t)}
-                              className="text-xs px-3 py-1 bg-success/10 text-success rounded hover:bg-success/20 transition-colors"
+                              className="text-xs p-1.5 bg-success/10 text-success rounded-md hover:bg-success/20 transition-colors"
+                              title="Cetak Struk"
                             >
-                              🖨️ Struk
+                              <Printer size={16} />
                             </button>
                           )}
                         </div>
@@ -638,8 +697,8 @@ export default function AdminPage({ onBack }: Props) {
                 <span className="text-sm font-mono font-bold text-primary-500">{selectedTransaksi.no_resi}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border/50">
-                <span className="text-sm text-text-muted">Ref Nurama</span>
-                <span className="text-sm font-mono text-text-secondary">{selectedTransaksi.nurama_ref}</span>
+                <span className="text-sm text-text-muted">Nurama Ref</span>
+                <span className="text-sm font-mono text-text-secondary">{selectedTransaksi.nurama_ref || '-'}</span>
               </div>
               <div className="flex justify-between items-center py-2 border-b border-border/50">
                 <span className="text-sm text-text-muted">Tanggal</span>
@@ -678,12 +737,12 @@ export default function AdminPage({ onBack }: Props) {
             </div>
             <div className="px-6 py-4 border-t border-border flex gap-3">
               {selectedTransaksi.payment_status === 'paid' && (
-                <button onClick={() => printStruk(selectedTransaksi)} className="btn-primary flex-1">
-                  🖨️ Cetak Struk
+                <button onClick={() => printStruk(selectedTransaksi)} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                  <Printer size={18} /> Cetak Struk
                 </button>
               )}
-              <button onClick={() => setSelectedTransaksi(null)} className="btn-secondary flex-1">
-                Tutup
+              <button onClick={() => setSelectedTransaksi(null)} className="btn-secondary flex-1 flex items-center justify-center gap-2">
+                <XCircle size={18} /> Tutup
               </button>
             </div>
           </div>

@@ -21,9 +21,11 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [redirectSuccess, setRedirectSuccess] = useState(false);
   const [redirectOrderId, setRedirectOrderId] = useState('');
+  const [redirectRefNumara, setRedirectRefNumara] = useState('');
 
   // Load session from localStorage on mount
   useEffect(() => {
+    const init = async () => {
     try {
       const params = new URLSearchParams(window.location.search);
       const transactionStatus = params.get('transaction_status');
@@ -46,13 +48,20 @@ export default function Home() {
           if (transactionStatus === 'finish' || transactionStatus === 'settlement') {
             setRedirectSuccess(true);
             setRedirectOrderId(orderId);
+            // Ambil nurama_ref dari database
+            try {
+              const res = await fetch(`/api/transaksi/${orderId}`);
+              const data = await res.json();
+              if (data.success && data.data?.nurama_ref) {
+                setRedirectRefNumara(data.data.nurama_ref);
+              }
+            } catch (e) {}
             setPage('payment');
           } else {
             setPage('search');
           }
           window.history.replaceState({}, '', '/');
-        } else {
-          const savedPage = localStorage.getItem('currentPage') as AppPage;
+        } else {          const savedPage = localStorage.getItem('currentPage') as AppPage;
           const safePage: AppPage =
             savedPage === 'search' || savedPage === 'admin' ? savedPage : 'search';
           setPage(safePage);
@@ -68,6 +77,8 @@ export default function Home() {
       setIsLoading(false);
       setMounted(true);
     }
+    };
+    init();
   }, []);
 
   // Check API health (non-blocking)
@@ -116,6 +127,7 @@ export default function Home() {
     setBillingData(null);
     setRedirectSuccess(false);
     setRedirectOrderId('');
+    setRedirectRefNumara('');
     localStorage.removeItem('billingData');
     setPage('search');
   };
@@ -159,6 +171,7 @@ export default function Home() {
             data={billingData}
             initialSuccess={redirectSuccess}
             initialOrderId={redirectOrderId}
+            initialRefNumara={redirectRefNumara}
             onReset={handleReset}
           />
         )}
