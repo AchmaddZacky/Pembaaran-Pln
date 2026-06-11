@@ -82,17 +82,23 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    // Delete tagihan first (foreign key)
+    // Hapus transaksi dulu (FK ke tagihan)
+    await query(
+      'DELETE tr FROM transaksi tr JOIN tagihan tg ON tr.id_tagihan = tg.id_tagihan WHERE tg.idpel = ?',
+      [id]
+    );
+
+    // Hapus tagihan (FK ke pelanggan)
     await query('DELETE FROM tagihan WHERE idpel = ?', [id]);
-    
-    // Then delete pelanggan
+
+    // Hapus pelanggan
     await query('DELETE FROM pelanggan WHERE idpel = ?', [id]);
 
     return NextResponse.json({ success: true, message: 'Pelanggan deleted' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting pelanggan:', error);
     return NextResponse.json(
-      { success: false, message: 'Server error' },
+      { success: false, message: error.message || 'Server error' },
       { status: 500 }
     );
   }
